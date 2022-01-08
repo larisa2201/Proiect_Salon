@@ -33,7 +33,7 @@ namespace Proiect_Salon
 
         ActionState action = ActionState.Nothing;
         SalonEntitiesModel ctx = new SalonEntitiesModel();
-        CollectionViewSource clientVSource, serviciuVSource, angajatVSource, programareVSource, facturaVSource;
+        CollectionViewSource clientVSource, serviciuVSource, facturaVSource;
         public MainWindow()
         {
             InitializeComponent();
@@ -43,22 +43,22 @@ namespace Proiect_Salon
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             clientVSource =
-                ((System.Windows.Data.CollectionViewSource)(this.FindResource("clientViewSource")));
+                ((System.Windows.Data.CollectionViewSource)(this.FindResource("clientiViewSource")));
             clientVSource.Source = ctx.Clientis.Local;
             ctx.Clientis.Load();
             serviciuVSource =
-                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("serviciuViewSource")));
-            angajatVSource =
-                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("angajatViewSource")));
-            programareVSource =
-                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("programareViewSource")));
+                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("serviciiViewSource")));
+           
             facturaVSource =
-                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("facturaViewSource")));
-            ctx.Angajatis.Load();
+                 ((System.Windows.Data.CollectionViewSource)(this.FindResource("facturiViewSource")));
+            
             ctx.Facturis.Load();
-            ctx.Programaris.Load();
+            
             ctx.Serviciis.Load();
-
+            
+            serviciuVSource.Source = ctx.Serviciis.Local;
+            facturaVSource.Source = ctx.Facturis.Local;
+            
             System.Windows.Data.CollectionViewSource programariViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("programariViewSource")));
             // Load data by setting the CollectionViewSource.Source property:
             // programariViewSource.Source = [generic data source]
@@ -79,10 +79,17 @@ namespace Proiect_Salon
         private void btnNew_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.New;
+           
+            SetValidationBinding();
         }
         private void btnEdit_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.Edit;
+           BindingOperations.ClearBinding(numeTextBox, TextBox.TextProperty);
+           BindingOperations.ClearBinding(prenumeTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(denumireTextBox, TextBox.TextProperty);
+            SetValidationBinding();
+
         }
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
@@ -94,15 +101,7 @@ namespace Proiect_Salon
             serviciuVSource.View.MoveCurrentToPrevious();
         }
 
-        private void btnPrevious_Click(object sender, RoutedEventArgs e)
-        {
-            angajatVSource.View.MoveCurrentToPrevious();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            angajatVSource.View.MoveCurrentToNext();
-        }
+        
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
@@ -114,15 +113,7 @@ namespace Proiect_Salon
             facturaVSource.View.MoveCurrentToNext();
         }
 
-        private void Button_Click_3(object sender, RoutedEventArgs e)
-        {
-            programareVSource.View.MoveCurrentToPrevious();
-        }
-
-        private void Button_Click_4(object sender, RoutedEventArgs e)
-        {
-            programareVSource.View.MoveCurrentToNext();
-        }
+       
 
         private void btnNext1_Click(object sender, RoutedEventArgs e)
         {
@@ -140,19 +131,23 @@ namespace Proiect_Salon
             {
                 try
                 {
-                    //instantiem Customer entity
+                   
                     client = new Clienti()
                     {
                         Nume = numeTextBox.Text.Trim(),
-                        Prenume = prenumeTextBox.Text.Trim()
+                        Prenume = prenumeTextBox.Text.Trim(),
+                        E_mail=e_mailTextBox.Text.Trim(),
+                        Parola=parolaTextBox.Text.Trim(),
+                        Telefon=telefonTextBox.Text.Trim()
+
                     };
-                    //adaugam entitatea nou creata in context
+                   
                     ctx.Clientis.Add(client);
                     clientVSource.View.Refresh();
-                    //salvam modificarile
+                    
                     ctx.SaveChanges();
                 }
-                //using System.Data;
+               
                 catch (DataException ex)
                 {
                     MessageBox.Show(ex.Message);
@@ -166,7 +161,8 @@ if (action == ActionState.Edit)
                     client = (Clienti)clientiDataGrid.SelectedItem;
                     client.Nume = numeTextBox.Text.Trim();
                     client.Prenume = prenumeTextBox.Text.Trim();
-                    //salvam modificarile
+                    
+                    
                     ctx.SaveChanges();
                 }
                 catch (DataException ex)
@@ -208,7 +204,7 @@ if (action == ActionState.Edit)
         }
         private void ReInitialize()
         {
-            Panel panel = Actiuni.Content as Panel;
+            Panel panel = Operatii.Content as Panel;
             foreach (Button B in panel.Children.OfType<Button>())
             {
                 B.IsEnabled = true;
@@ -224,18 +220,14 @@ if (action == ActionState.Edit)
             TabItem ti = tbCtrl.SelectedItem as TabItem;
             switch (ti.Header)
             {
-                case "Angajati":
-                    SaveAngajati();
-                    break;
+               
                 case "Servicii":
                     SaveServicii();
                     break;
                 case "Clienti":
                     SaveClienti();
                     break;
-                case "Programari":
-                    SaveProgramari();
-                    break;
+                
                 case "Facturi":
                     SaveFacturi();
                     break;
@@ -250,19 +242,20 @@ if (action == ActionState.Edit)
             {
                 try
                 {
-                    //instantiem Customer entity
+                   
                     serviciu = new Servicii()
                     {
                         Denumire = denumireTextBox.Text.Trim(),
-                        
-                    };
-                    //adaugam entitatea nou creata in context
+                        Pret=Decimal.Parse(pretTextBox.Text.Trim()),
+                        Timp_Executie=TimeSpan.Parse(timp_ExecutieTextBox.Text.Trim())
+                     };
+                    
                     ctx.Serviciis.Add(serviciu);
                     serviciuVSource.View.Refresh();
-                    //salvam modificarile
+                    
                     ctx.SaveChanges();
                 }
-                //using System.Data;
+                
                 catch (DataException ex)
                 {
                     MessageBox.Show(ex.Message);
@@ -275,7 +268,7 @@ if (action == ActionState.Edit)
                 {
                     serviciu = (Servicii)serviciiDataGrid.SelectedItem;
                     serviciu.Denumire = denumireTextBox.Text.Trim();
-                    
+
                     ctx.SaveChanges();
                 }
                 catch (DataException ex)
@@ -298,120 +291,7 @@ if (action == ActionState.Edit)
                 serviciuVSource.View.Refresh();
             }
         }
-        private void SaveAngajati()
-        {
-            Angajati angajat = null;
-            if (action == ActionState.New)
-            {
-                try
-                {
-                    //instantiem Customer entity
-                    angajat = new Angajati()
-                    {
-                        Nume = numeTextBox.Text.Trim(),
-                        Prenume = prenumeTextBox.Text.Trim()
-                    };
-                    //adaugam entitatea nou creata in context
-                    ctx.Angajatis.Add(angajat);
-                    angajatVSource.View.Refresh();
-                    //salvam modificarile
-                    ctx.SaveChanges();
-                }
-                //using System.Data;
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-            else
-            if (action == ActionState.Edit)
-            {
-                try
-                {
-                    angajat = (Angajati)angajatiDataGrid.SelectedItem;
-                    angajat.Nume= numeTextBox.Text.Trim();
-                    angajat.Prenume = prenumeTextBox.Text.Trim();
-                    //salvam modificarile
-                    ctx.SaveChanges();
-                }
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-            else if (action == ActionState.Delete)
-            {
-                try
-                {
-                   angajat = (Angajati)angajatiDataGrid.SelectedItem;
-                    ctx.Angajatis.Remove(angajat);
-                    ctx.SaveChanges();
-                }
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-                angajatVSource.View.Refresh();
-            }
-        }
-        private void SaveProgramari()
-        {
-            Programari programare = null;
-            if (action == ActionState.New)
-            {
-                try
-                {
-                    //instantiem Programari entity
-                    programare = new Programari()
-                    {
-                      Data  = dataTextBox.Text.Trim(),
-                       
-                    };
-                    //adaugam entitatea nou creata in context
-                    ctx.Programaris.Add(programare);
-                    programareVSource.View.Refresh();
-                    //salvam modificarile
-                    ctx.SaveChanges();
-                }
-                //using System.Data;
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-
-            else
-           if (action == ActionState.Edit)
-            {
-                try
-                {
-                    programare = (Programari)programariDataGrid.SelectedItem;
-                    programare.Data = dataTextBox.Text.Trim();
-                    
-                    //salvam modificarile
-                    ctx.SaveChanges();
-                }
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-            else if (action == ActionState.Delete)
-            {
-                try
-                {
-                    programare = (Programari)programariDataGrid.SelectedItem;
-                    ctx.Programaris.Remove(programare);
-                    ctx.SaveChanges();
-                }
-                catch (DataException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-                programareVSource.View.Refresh();
-            }
-
-        }
+      
         private void SaveFacturi()
         {
             Facturi factura = null;
@@ -419,18 +299,21 @@ if (action == ActionState.Edit)
             {
                 try
                 {
-                    //instantiem Factura entity
+                    
                     factura = new Facturi()
                     {
-                     //   Data =dataTextBox.Text.Trim()
+                        Data = DateTime.Parse(dataDatePicker.Text.Trim()),
+                        Id_client = int.Parse(id_clientTextBox.Text),
+                        Id_serviciu=int.Parse(id_serviciuTextBox.Text),
+                        Total=decimal.Parse(totalTextBox.Text)
                     };
-                    //adaugam entitatea nou creata in context
+                    
                     ctx.Facturis.Add(factura);
                     facturaVSource.View.Refresh();
-                    //salvam modificarile
+                    
                     ctx.SaveChanges();
                 }
-                //using System.Data;
+                
                 catch (DataException ex)
                 {
                     MessageBox.Show(ex.Message);
@@ -442,8 +325,8 @@ if (action == ActionState.Edit)
                 try
                 {
                     factura = (Facturi)facturiDataGrid.SelectedItem;
-                   // factura.Data = dataTextBox.Text.Trim();
-                    //salvam modificarile
+                    factura.Data = DateTime.Parse(dataDatePicker.Text);
+
                     ctx.SaveChanges();
                 }
                 catch (DataException ex)
@@ -468,5 +351,42 @@ if (action == ActionState.Edit)
 
         }
 
+        private void SetValidationBinding()
+        {
+            Binding firstNameValidationBinding = new Binding();
+            firstNameValidationBinding.Source = clientVSource;
+            firstNameValidationBinding.Path = new PropertyPath("Prenume");
+            firstNameValidationBinding.NotifyOnValidationError = true;
+            firstNameValidationBinding.Mode = BindingMode.TwoWay;
+            firstNameValidationBinding.UpdateSourceTrigger =
+           UpdateSourceTrigger.PropertyChanged;
+            
+            firstNameValidationBinding.ValidationRules.Add(new StringNotEmpty());
+            prenumeTextBox.SetBinding(TextBox.TextProperty,
+           firstNameValidationBinding);
+
+            Binding lastNameValidationBinding = new Binding();
+            lastNameValidationBinding.Source = clientVSource;
+            lastNameValidationBinding.Path = new PropertyPath("Nume");
+            lastNameValidationBinding.NotifyOnValidationError = true;
+            lastNameValidationBinding.Mode = BindingMode.TwoWay;
+            lastNameValidationBinding.UpdateSourceTrigger =
+           UpdateSourceTrigger.PropertyChanged;
+            
+            lastNameValidationBinding.ValidationRules.Add(new
+           StringMinLengthValidator());
+            numeTextBox.SetBinding(TextBox.TextProperty,
+           lastNameValidationBinding); 
+
+            Binding denumireValidationBinding = new Binding();
+            denumireValidationBinding.Source = serviciuVSource;
+            denumireValidationBinding.Path = new PropertyPath("Denumire");
+            denumireValidationBinding.NotifyOnValidationError = true;
+            denumireValidationBinding.Mode = BindingMode.TwoWay;
+            denumireValidationBinding.UpdateSourceTrigger =
+                UpdateSourceTrigger.PropertyChanged;
+            denumireValidationBinding.ValidationRules.Add(new StringNotEmpty());
+            denumireTextBox.SetBinding(TextBox.TextProperty, denumireValidationBinding);
+        } 
     }
 }
